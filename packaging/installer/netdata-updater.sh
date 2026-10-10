@@ -1233,6 +1233,16 @@ get_new_binpkg_major() {
   esac
 }
 
+get_repo_path() {
+  case "${1}" in
+    amzn) printf 'amazonlinux/%s/%s\n' "${2}" "${3}" ;;
+    centos-stream) printf 'el/c%ss/%s\n' "${2}" "${3}" ;;
+    fedora) printf 'fedora/%s/%s\n' "${2}" "${3}" ;;
+    ol) printf 'ol/%s/%s\n' "$(echo "${2}" | cut -f 1 -d '.')" "${3}" ;;
+    *) printf 'el/%s/%s\n' "$(echo "${2}" | cut -f 1 -d '.')" "${3}" ;;
+  esac
+}
+
 update_binpkg() {
   os_release_file=
   if [ -s "/etc/os-release" ] && [ -r "/etc/os-release" ]; then
@@ -1315,13 +1325,7 @@ update_binpkg() {
       repo_update_opts="${interactive_opts}"
       pkg_installed_check="rpm -q"
       INSTALL_TYPE="binpkg-rpm"
-      case "${DISTRO_COMPAT_NAME}" in
-        amzn) repo_path="amazonlinux/${SYSVERSION}/$(uname -m)" ;;
-        centos-stream) repo_path="el/c${SYSVERSION}s/$(uname -m)" ;;
-        fedora) repo_path="fedora/${SYSVERSION}/$(uname -m)" ;;
-        ol) repo_path="ol/${SYSVERSION}/$(uname -m)" ;;
-        *) repo_path="el/$(echo "${SYSVERSION}" | cut -f 1 -d '.')/$(uname -m)" ;;
-      esac
+      repo_path="$(get_repo_path "${DISTRO_COMPAT_NAME}" "${SYSVERSION}" "$(uname -m)")"
       ;;
     opensuse)
       if [ "${INTERACTIVE}" = "0" ]; then
